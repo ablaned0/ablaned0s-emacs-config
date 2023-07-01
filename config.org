@@ -1,0 +1,417 @@
+
+#+title: My Emacs Configuration
+#+author: Francisco Prieto Ramírez
+
+* Introduction
+This is my emacs config. I use it on different machines.
+** Literate config
+This config is written into the source blocks of an org file.  You can
+do something like this by calling the function =org-babel-load-file=
+from your *init.el*.
+
+Depending on the machine I'm at, i may want to use some source block
+or not. To discard some source block, add =:tangle no= at the end of
+the =#+begin_src= tag.
+* Package Management
+** MELPA
+Initialize *package* on startup and add *MELPA* to the repository list.
+#+begin_src emacs-lisp
+(require 'package)
+(setq package-enable-at-startup nil)
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+(package-initialize)
+#+end_src
+** Package Manager
+I'm using *use-package* as my package manager.
+It is a macro that allows you to install and configure your packages.
+#+begin_src emacs-lisp
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+#+end_src
+* Basic UI
+** No scrollbar
+#+begin_src emacs-lisp
+(scroll-bar-mode -1)
+#+end_src
+** No menu bar
+#+begin_src emacs-lisp
+  (menu-bar-mode -1)
+#+end_src
+** No tool bar
+#+begin_src emacs-lisp
+(tool-bar-mode -1)
+#+end_src
+** Inhibit startup mesage
+#+begin_src emacs-lisp
+(setq inhibit-startup-message t)
+#+end_src
+** No fringes
+#+begin_src emacs-lisp :tangle no
+(fringe-mode -1)
+#+end_src
+** Enable global subword mode
+#+begin_src emacs-lisp
+(global-subword-mode)
+#+end_src
+** Rainbow
+Colorizes strings corresponding with hex color values.
+#+begin_src emacs-lisp
+  (use-package rainbow-mode
+    :ensure t
+    :init
+    (add-hook 'prog-mode-hook 'rainbow-mode)
+    (add-hook 'org-mode-hook 'rainbow-mode))
+#+end_src
+** Highlight current line
+#+begin_src emacs-lisp
+(global-hl-line-mode 1)
+#+end_src
+** Font
+#+begin_src emacs-lisp
+(set-face-attribute 'default nil :font "Fantasque Sans Mono NF" :height 120)
+#+end_src
+** Visual Bell
+#+begin_src emacs-lisp
+(setq visible-bell t)
+#+end_src
+** Blinking cursor
+#+begin_src
+(blink-cursor-mode 1)
+#+end_src
+** Beacon
+Flashes the line where the cursor is when changing window or frame.
+#+begin_src emacs-lisp
+  (use-package beacon
+    :ensure t
+    :init
+    (beacon-mode)
+    (setq beacon-color "#ffc0cb"))
+#+end_src
+** Theme
+#+begin_src emacs-lisp
+(use-package ef-themes
+  :ensure t
+  :init
+  (load-theme 'ef-summer :no-confirm))
+#+end_src
+** writeroom-mode
+=writeroom-mode= enables a distraction free writing environment
+#+begin_src emacs-lisp
+  (use-package writeroom-mode
+    :ensure t)
+#+end_src
+** Relative line numbers
+#+begin_src emacs-lisp
+(add-hook 'prog-mode-hook (lambda () (setq display-line-numbers 'relative)))
+#+end_src
+** Modeline
+*** Line and Column number
+ #+begin_src emacs-lisp
+   (setq line-number-mode t)
+   (setq column-number-mode t)
+ #+end_src
+** which-key
+Helps remmembering keychords by showing contextual help.
+#+begin_src emacs-lisp
+  (use-package which-key
+    :ensure t
+    :init
+    (which-key-mode))
+#+end_src
+** Ace-window
+When there are more than two windows, it assigns a number to each one
+so it is easier to change between them. I have it bound to =C-x o=.
+#+begin_src emacs-lisp
+  (use-package ace-window
+    :ensure t
+    :init
+    (global-set-key [remap other-window] 'ace-window))
+#+end_src
+* Text editting
+** Set UTF-8 enciding
+#+begin_src emacs-lisp
+(setq locale-coding-system 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+(set-selection-coding-system 'utf-8)
+(prefer-coding-system 'utf-8)
+#+end_src
+** Parenthesis
+*** No delay showing matching parenthesis
+ #+begin_src emacs-lisp 
+(setq show-paren-delay 0)
+ #+end_src
+*** Show matching parenthesis
+#+begin_src emacs-lisp
+(show-paren-mode 1)
+#+end_src
+*** Rainbow delimeters
+Gives a different color to each pair of parnthesis.
+#+begin_src emacs-lisp
+  (use-package rainbow-delimiters
+    :ensure t
+    :init
+    (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+#+end_src
+*** Autoclose delimiters
+I want every delimeter pair to autoclose with the exception of "<"
+#+begin_src emacs-lisp
+  (setq electric-pair-inhibit-predicate
+	(lambda (c)
+	  (if (char-equal c ?\<) t (electric-pair-default-inhibit c))))
+  (electric-pair-mode nil)
+#+end_src
+** Avy
+ Asks you for a character, then asks you to select which occurrence of that character and moves there.
+ #+begin_src emacs-lisp
+   (use-package avy
+     :ensure t
+     :bind
+     ("M-s" . avy-goto-char))
+ #+end_src
+** Undo-tree
+Saves a history of all the changes done to a file.
+#+begin_src emacs-lisp
+  (use-package undo-tree
+    :ensure t
+    :init
+    (global-undo-tree-mode))
+#+end_src
+** expand-region
+#+begin_src emacs-lisp
+  (use-package expand-region
+  :ensure t
+  :config
+  (global-set-key (kbd "C-=") 'er/expand-region))
+#+end_src
+** iedit
+Multiple cursors.
+#+begin_src emacs-lisp
+  (use-package iedit
+    :ensure t)
+#+end_src
+* Interactively do things
+** ido
+similar to *dmenu* but inside emacs.
+#+begin_src emacs-lisp
+(setq ido-enable-flex-matching t)
+(setq ido-everywhere t)
+(ido-mode 1)
+#+end_src
+*** ido-vertical-mode
+#+begin_src emacs-lisp
+  (ido-vertical-mode 1)
+#+end_src
+** icomplete-vertical-mode
+#+begin_src emacs-lisp
+  (icomplete-vertical-mode 1)
+#+end_src
+** Smex
+Substitutes M-x for an equivalent but more similar to ido.
+#+begin_src emacs-lisp
+  (use-package smex
+    :ensure t
+    :init
+    (smex-initialize)
+    :bind
+    ("M-x" . smex)
+    ("M-X" . smex-major-mode-commands))
+#+end_src
+** ibuffer
+Gives a similar buffer to dired that to manage buffers.
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-x C-b") 'ibuffer)
+#+end_src
+* Org-mode
+** When using M-RET don't split the line
+#+begin_src emacs-lisp
+  (setq org-M-RET-may-split-line nil)
+#+end_src
+** Don't allow me to edit invisible parts of an org file
+#+begin_src emacs-lisp
+  (setq org-catch-invisible-edits 'error)
+#+end_src
+** Dynamic Headline Numbering
+#+begin_src emacs-lisp
+  (setq org-startup-numerated t)
+#+end_src
+
+** Agenda
+*** Keybindigs
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-c a") 'org-agenda)
+#+end_src
+*** Agenda files
+#+begin_src emacs-lisp
+(setq org-agenda-files (list "~/org/tasks.org"))
+#+end_src
+** Store links
+*** Keybindings
+ #+begin_src emacs-lisp
+   (global-set-key (kbd "C-c l") 'org-store-link)
+ #+end_src
+** Capture
+*** Keybindings
+ #+begin_src emacs-lisp
+   (global-set-key (kbd "C-c c") 'org-capture)
+ #+end_src
+*** File
+#+begin_src emacs-lisp
+(setq org-default-notes-file (concat org-directory "/notes.org"))
+#+end_src
+*** Templates
+There are currently the following templates:
+  + *Todo:* to capture tasks that need to be done. (Yanked from the [[info:org#Capture
+     templates][info pages]]).
+  + *Journal:* to capture thoughts and feelings. (Yanked from
+    the [[info:org#Capture templates][info pages]]).
+  + *Ideas:* to capture ideas.
+  + *Fleeting notes:* bits of knowledge that will be manually added to
+    my notes.
+#+begin_src emacs-lisp
+  (setq org-capture-templates
+	'(("t" "Todo" entry (file+headline "~/org/tasks.org" "Tasks")
+	   "* TODO %?\n %i\n  %a")
+	  ("j" "Journal" entry (file+datetree "~/org/journal.org")
+	   "* %?\n Entered on %U\n  %i\n  %a")
+	  ("i" "Ideas" entry (file+datetree "~/org/ideas.org")
+	   "* %?\n Entered on %U\n  %i\n  %a")
+	  ("f" "Fleeting notes" entry (file+datetree "~/org/ideas.org")
+	   "* %?\n Entered on %U\n  %i\n  %a")))
+#+end_src
+* Denote
+Naming scheme to organize notes.
+#+begin_src emacs-lisp
+  (use-package denote
+    :ensure t)
+#+end_src
+** Change default directory
+#+begin_src emacs-lisp
+  (setq denote-directory "~/org/notes")
+#+end_src
+* Eshell
+*** Keybinding
+#+begin_src emacs-lisp :tangle no
+  (global-set-key (kbd "<s-return>") 'eshell)
+#+end_src
+*** Prompt
+#+begin_src emacs-lisp
+  (setq eshell-prompt-function
+   (lambda nil
+     (concat
+      (propertize "λ: " 'face '(:foreground "#cb1aaa"))
+      (propertize (eshell/pwd) 'face '(:foreground "#8e44f3"))
+      (propertize "\n⤷$" 'face '(:foreground "#ff9fee"))
+      (propertize " " 'face '(:foreground "#4f4073")))))
+#+end_src
+*** Bind M-m to the first character that isn't the prompt            :broken
+Source block copied from [[https://www.masteringemacs.org/article/complete-guide-mastering-eshell][the Mastering Emacs article]] but i don't know why it doesn't work.
+#+begin_src emacs-lisp :tangle no
+  (define-key eshell-mode-map (kbd "M-m") 'eshell-bol)
+#+end_src
+* Programming
+** projectile
+#+begin_src emacs-lisp
+  (use-package projectile
+    :ensure t
+    :bind
+    ("C-c p" . projectile-command-map)
+    :config
+    (projectile-global-mode))
+#+end_src
+** company
+#+begin_src emacs-lisp
+  (use-package company
+    :ensure t
+    :config
+    (global-company-mode t))
+#+end_src
+** flycheck
+#+begin_src emacs-lisp
+  (use-package flycheck
+    :ensure t
+    :init
+    (global-flycheck-mode t))
+#+end_src
+** yasnippet
+#+begin_src emacs-lisp
+    (use-package yasnippet
+      :ensure t
+      :init
+      (yas-global-mode 1))
+#+end_src
+*** yasnippet-snippets
+*Yasnippet* comes without snippets by default, so you have to install
+ them. In the past it all came on the same package, that's why a lot
+ of old tutorials don't mention it.
+#+begin_src emacs-lisp
+  (use-package yasnippet-snippets
+    :ensure t)
+#+end_src
+** eglot
+#+begin_src emacs-lisp
+  (use-package eglot
+    :ensure t)
+#+end_src
+*** eglot for c
+#+begin_src emacs-lisp
+  (add-hook 'c-mode-hook 'eglot-ensure)
+#+end_src
+*** eglot for html+css
+#+begin_src emacs-lisp
+  (add-hook 'html-mode-hook 'eglot-ensure)
+  (add-hook 'css-mode-hook 'eglot-ensure)
+#+end_src
+*** eglot for bash
+#+begin_src emacs-lisp
+  (add-hook 'sh-mode-hook 'eglot-ensure)
+#+end_src
+** web-mode
+#+begin_src emacs-lisp
+  (use-package web-mode
+    :ensure t
+    :config
+    (add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode))
+    (add-to-list 'auto-mode-alist '("\\.css\\'" . web-mode))
+    (add-to-list 'auto-mode-alist '("\\.js\\'" . web-mode))
+    (add-to-list 'auto-mode-alist '("\\.php\\'" . web-mode))
+    (setq web-mode-enable-auto-closing t
+	  web-mode-enable-auto-opening t
+	  web-mode-enable-auto-quoting t
+	  web-mode-enable-current-element-highlight t
+	  web-mode-enable-current-column-highlight t))
+#+end_src
+* Internet
+** emacs web wowser
+#+begin_src emacs-lisp
+  (setq
+   browse-url-browser-function 'eww-browse-url ; Use eww as the default browser
+   shr-use-fonts  nil                          ; No special fonts
+   shr-use-colors nil                          ; No colours
+   shr-indentation 2                           ; Left-side margin
+   shr-width 70                                ; Fold text to 70 columns
+   eww-search-prefix "https://lite.duckduckgo.com/lite/")    ; Use another engine for searching
+#+end_src
+
+** elpher
+#+begin_src emacs-lisp
+  (use-package elpher
+    :ensure t)
+#+end_src
+** newsticker
+*** use wget to retrieve feeds
+#+begin_src emacs-lisp
+  (setq newsticker-retrieval-method 'extern)
+#+end_src
+
+*** Feeds
+#+begin_src emacs-lisp
+  (setq newsticker-url-list
+	'(("Sacha Chua"
+	   "https://sachachua.com/blog/feed/")
+	  ("Protesilaos"
+	   "https://protesilaos.com/master.xml")
+	  ("Mike Zamansky"
+	   "https://cestlaz.github.io/rss.xml")))
+#+end_src
